@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConsciousNet Chat</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; }
+    #chat { border: 1px solid #ccc; background: white; padding: 10px; height: 400px; overflow-y: auto; }
+    .msg { margin: 5px 0; }
+    .user { font-weight: bold; color: blue; }
+    .bot { font-weight: bold; color: green; }
+    #inputBox { margin-top: 10px; }
+    #question { width: 80%; padding: 8px; }
+    #send { padding: 8px; }
+  </style>
+</head>
+<body>
+  <h1>🤖 ConsciousNet Chat</h1>
+  <div id="chat"></div>
+  <div id="inputBox">
+    <input type="text" id="question" placeholder="Ask me something..." />
+    <button id="send">Send</button>
+  </div>
+
+  <script>
+    const chatDiv = document.getElementById("chat");
+    const questionInput = document.getElementById("question");
+    const sendBtn = document.getElementById("send");
+
+    function addMessage(sender, text) {
+      const msg = document.createElement("div");
+      msg.classList.add("msg");
+      msg.innerHTML = `<span class="${sender}">${sender}:</span> ${text}`;
+      chatDiv.appendChild(msg);
+      chatDiv.scrollTop = chatDiv.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const question = questionInput.value.trim();
+      if (!question) return;
+
+      addMessage("user", question);
+      questionInput.value = "";
+
+      try {
+        const res = await fetch("http://localhost:5000/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question }),
+        });
+
+        const data = await res.json();
+        addMessage("bot", data.answer || "Error: no answer");
+      } catch (err) {
+        addMessage("bot", "⚠️ Error connecting to server.");
+      }
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    questionInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+  </script>
+</body>
+</html>
