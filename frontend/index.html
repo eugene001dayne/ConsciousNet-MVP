@@ -5,62 +5,63 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ConsciousNet Chat</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; }
-    #chat { border: 1px solid #ccc; background: white; padding: 10px; height: 400px; overflow-y: auto; }
-    .msg { margin: 5px 0; }
-    .user { font-weight: bold; color: blue; }
-    .bot { font-weight: bold; color: green; }
-    #inputBox { margin-top: 10px; }
-    #question { width: 80%; padding: 8px; }
-    #send { padding: 8px; }
+    body { font-family: Arial, sans-serif; background: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    #chat-container { width: 400px; height: 500px; background: white; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+    #chat-box { flex: 1; padding: 10px; overflow-y: auto; border-bottom: 1px solid #ddd; }
+    .message { margin: 5px 0; }
+    .user { text-align: right; color: blue; }
+    .bot { text-align: left; color: green; }
+    #input-container { display: flex; }
+    #user-input { flex: 1; padding: 10px; border: none; border-radius: 0 0 0 10px; outline: none; }
+    #send-btn { padding: 10px 20px; border: none; background: #007BFF; color: white; border-radius: 0 0 10px 0; cursor: pointer; }
+    #send-btn:hover { background: #0056b3; }
   </style>
 </head>
 <body>
-  <h1>🤖 ConsciousNet Chat</h1>
-  <div id="chat"></div>
-  <div id="inputBox">
-    <input type="text" id="question" placeholder="Ask me something..." />
-    <button id="send">Send</button>
+  <div id="chat-container">
+    <div id="chat-box"></div>
+    <div id="input-container">
+      <input type="text" id="user-input" placeholder="Type your message...">
+      <button id="send-btn">Send</button>
+    </div>
   </div>
 
   <script>
-    const chatDiv = document.getElementById("chat");
-    const questionInput = document.getElementById("question");
-    const sendBtn = document.getElementById("send");
+    const chatBox = document.getElementById("chat-box");
+    const userInput = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
 
-    function addMessage(sender, text) {
-      const msg = document.createElement("div");
-      msg.classList.add("msg");
-      msg.innerHTML = `<span class="${sender}">${sender}:</span> ${text}`;
-      chatDiv.appendChild(msg);
-      chatDiv.scrollTop = chatDiv.scrollHeight;
+    function addMessage(message, sender) {
+      const msgDiv = document.createElement("div");
+      msgDiv.classList.add("message", sender);
+      msgDiv.innerText = message;
+      chatBox.appendChild(msgDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     async function sendMessage() {
-      const question = questionInput.value.trim();
-      if (!question) return;
+      const message = userInput.value.trim();
+      if (!message) return;
 
-      addMessage("user", question);
-      questionInput.value = "";
+      addMessage(message, "user");
+      userInput.value = "";
 
       try {
-        const res = await fetch("http://localhost:10000/ask", {
+        const res = await fetch("https://consciousnet-mvp.onrender.com/ask", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question }),
+          body: JSON.stringify({ question: message })
         });
 
         const data = await res.json();
-        addMessage("bot", data.answer || "⚠️ Error: no answer");
-      } catch (err) {
-        addMessage("bot", "⚠️ Error connecting to server.");
+        addMessage(data.answer || "No response from server.", "bot");
+      } catch (error) {
+        addMessage("Error connecting to server.", "bot");
       }
     }
 
     sendBtn.addEventListener("click", sendMessage);
-    questionInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") sendMessage();
-    });
+    userInput.addEventListener("keypress", e => { if (e.key === "Enter") sendMessage(); });
   </script>
 </body>
 </html>
