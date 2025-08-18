@@ -3,113 +3,94 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Chat</title>
+  <title>ConsciousNet MVP</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f5f5f5;
+      background: #f4f4f9;
       margin: 0;
       padding: 0;
       display: flex;
-      flex-direction: column;
+      justify-content: center;
+      align-items: center;
       height: 100vh;
     }
-    #chat {
-      flex: 1;
-      padding: 15px;
-      overflow-y: auto;
+    .container {
       background: white;
-      border-bottom: 1px solid #ccc;
-    }
-    #chat div {
-      margin: 5px 0;
-      padding: 8px 12px;
+      padding: 20px;
       border-radius: 8px;
-      max-width: 75%;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      max-width: 500px;
+      width: 100%;
     }
-    #chat div.user {
-      background: #007bff;
-      color: white;
-      align-self: flex-end;
-    }
-    #chat div.bot {
-      background: #eaeaea;
-      color: #333;
-      align-self: flex-start;
+    h1 {
+      text-align: center;
     }
     form {
       display: flex;
-      padding: 10px;
-      background: #f0f0f0;
+      flex-direction: column;
     }
     input {
-      flex: 1;
       padding: 10px;
+      margin-bottom: 10px;
       border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 16px;
+      border-radius: 5px;
     }
     button {
-      padding: 10px 16px;
-      margin-left: 10px;
+      padding: 10px;
       border: none;
-      border-radius: 8px;
       background: #007bff;
       color: white;
       font-size: 16px;
+      border-radius: 5px;
       cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #response {
+      margin-top: 15px;
+      padding: 10px;
+      background: #f1f1f1;
+      border-radius: 5px;
+      min-height: 40px;
     }
   </style>
 </head>
 <body>
-  <div id="chat"></div>
-  <form id="chat-form">
-    <input type="text" id="question-input" placeholder="Ask something..." />
-    <button type="submit">Send</button>
-  </form>
+  <div class="container">
+    <h1>ConsciousNet MVP</h1>
+    <form id="askForm">
+      <input type="text" id="question" placeholder="Ask something..." required />
+      <button type="submit">Ask</button>
+    </form>
+    <div id="response">Your answer will appear here...</div>
+  </div>
 
   <script>
-    const form = document.getElementById("chat-form");
-    const input = document.getElementById("question-input");
-    const chat = document.getElementById("chat");
+    const API_URL = "https://consciousnet-mvp.onrender.com/ask";
 
-    form.addEventListener("submit", async (e) => {
+    document.getElementById("askForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const question = input.value.trim();
-      if (!question) return;
 
-      // Show user message
-      const userMsg = document.createElement("div");
-      userMsg.textContent = "You: " + question;
-      userMsg.classList.add("user");
-      chat.appendChild(userMsg);
-
-      input.value = "";
+      const question = document.getElementById("question").value;
+      const responseDiv = document.getElementById("response");
+      responseDiv.innerText = "Thinking...";
 
       try {
-        // Send to backend
-        const res = await fetch("http://localhost:10000/ask", {
+        const res = await fetch(API_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({ question }),
         });
 
         const data = await res.json();
-
-        // Show bot answer
-        const botMsg = document.createElement("div");
-        botMsg.textContent = "Bot: " + (data.answer || "No response");
-        botMsg.classList.add("bot");
-        chat.appendChild(botMsg);
-
+        responseDiv.innerText = data.answer || data.error || "No response";
       } catch (err) {
-        const errorMsg = document.createElement("div");
-        errorMsg.textContent = "Bot: Error connecting to server.";
-        errorMsg.classList.add("bot");
-        chat.appendChild(errorMsg);
+        responseDiv.innerText = "Error connecting to server.";
       }
-
-      chat.scrollTop = chat.scrollHeight;
     });
   </script>
 </body>
